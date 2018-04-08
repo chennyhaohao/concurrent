@@ -13,8 +13,9 @@ struct shmdata *shm_ptr;
 
 int main(int argc, char **argv) {
 	char opt;
-	int service_time, argNum = 0;
+	int service_time, index, db_index, argNum = 0;
 	char* usage_msg = "Usage: %s -s [service time]\n";
+	FILE * db_fp;
 
 	while ((opt = getopt(argc, argv, "s:")) != -1) { // Use getopt to parse commandline arguments
         switch (opt) { 
@@ -40,6 +41,11 @@ int main(int argc, char **argv) {
     	return -1;
     }
 
+    if ( (db_fp = fopen("./db.bin", "a")) < 0 ) {
+    	perror("fopen");
+    	return -1;
+    }
+
 	if ( (mem_key = ftok("./ipc.temp", 666)) == -1 ) {
 		perror("ftok");
 		return -1;
@@ -62,14 +68,23 @@ int main(int argc, char **argv) {
 	sem_wait(&(shm_ptr->customer)); //Wait till there are customers
 
 	sem_wait(&(shm_ptr->mutex)); //Mutex lock
-	int index = shm_ptr->head_i;
-	shm_ptr->head_i = (shm_ptr->head_i+1)%maxPeople;
+	index = shm_ptr->head_i;
+	shm_ptr->head_i = (shm_ptr->head_i+1)%maxPeople; //Move queue head forward
 	sem_post(&(shm_ptr->mutex)); //Release mutex
 
 	sleep(service_time);
 
 	printf("Picked up order from client %d for item %d\n", shm_ptr->orders[index].client_id, 
 		shm_ptr->orders[index].item_id);
+
+	sem_wait(&(shm_ptr->db_mutex));
+	db_index = shm_ptr->db_i;
+	shm_ptr->db_i++;
+	sem_post(&(shm_ptr->db_mutex));
+
+	fseek(db_fp, db_index*sizeof(struct order), SEEK_SET);
+	fwrite(&(shm_ptr->orders[index]), sizeof(struct order), 1, db_fp);
+
 	sem_post(&(shm_ptr->queue[index])); //Wake up customer
 
 	if ( (shmdt(shm_ptr)) == -1 ) {
@@ -79,6 +94,8 @@ int main(int argc, char **argv) {
 
 
 	printf("shm detached\n");
+
+	fclose(db_fp);
 
 	return 0;
 }

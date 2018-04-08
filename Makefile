@@ -1,13 +1,13 @@
 all: coordinator cleaner cashier customer
 
-coordinator: coordinator.c
+coordinator: coordinator.c shm.h
 	gcc coordinator.c -o coordinator -lpthread
 
-cleaner: cleaner.c
+cleaner: cleaner.c shm.h
 	gcc cleaner.c -o cleaner
 
-cashier: cashier.c
+cashier: cashier.c shm.h
 	gcc cashier.c -o cashier -lpthread
 
-customer: customer.c
+customer: customer.c shm.h
 	gcc customer.c -o customer -lpthread

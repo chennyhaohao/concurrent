@@ -35,7 +35,10 @@ int main() {
 	shm_ptr->waiting = 0;
 	shm_ptr->head_i = 0;
 	shm_ptr->tail_i = 0;
+	shm_ptr->db_i = 0;
+
 	sem_init(&(shm_ptr->mutex), 1, 1);
+	sem_init(&(shm_ptr->db_mutex), 1, 1);
 	sem_init(&(shm_ptr->customer), 1, 0);
 	for (int i=0; i<maxPeople; i++) {
 		sem_init(&(shm_ptr->queue[i]), 1, 0);

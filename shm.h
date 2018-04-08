@@ -13,8 +13,10 @@ struct shmdata {
 	int waiting;
 	int head_i;
 	int tail_i;
+	int db_i;
 
 	sem_t mutex;
+	sem_t db_mutex;
 	sem_t customer;
 	sem_t queue[maxPeople];
 	struct order orders[maxPeople];
