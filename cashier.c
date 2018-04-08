@@ -11,7 +11,35 @@ int       shm_id;
 key_t     mem_key;
 struct shmdata *shm_ptr;
 
-int main() {
+int main(int argc, char **argv) {
+	char opt;
+	int service_time, argNum = 0;
+	char* usage_msg = "Usage: %s -s [service time]\n";
+
+	while ((opt = getopt(argc, argv, "s:")) != -1) { // Use getopt to parse commandline arguments
+        switch (opt) { 
+        case 's':
+            service_time = atoi(optarg);
+            if (service_time < 0) {
+                printf("Invalid item id.\n");
+                return -1;
+            }
+            argNum++;
+            break;
+
+        default: 
+            fprintf(stderr, usage_msg, // In case of wrong options
+                    argv[0]);
+            return -1;
+        }
+    }
+
+    if (argNum < 1) {
+    	fprintf(stderr, usage_msg, // In case of wrong options
+                    argv[0]);
+    	return -1;
+    }
+
 	if ( (mem_key = ftok("./ipc.temp", 666)) == -1 ) {
 		perror("ftok");
 		return -1;
@@ -30,6 +58,19 @@ int main() {
 	} 
 
 	printf("shm attached\n");
+
+	sem_wait(&(shm_ptr->customer)); //Wait till there are customers
+
+	sem_wait(&(shm_ptr->mutex)); //Mutex lock
+	int index = shm_ptr->head_i;
+	shm_ptr->head_i = (shm_ptr->head_i+1)%maxPeople;
+	sem_post(&(shm_ptr->mutex)); //Release mutex
+
+	sleep(service_time);
+
+	printf("Picked up order from client %d for item %d\n", shm_ptr->orders[index].client_id, 
+		shm_ptr->orders[index].item_id);
+	sem_post(&(shm_ptr->queue[index])); //Wake up customer
 
 	if ( (shmdt(shm_ptr)) == -1 ) {
 		perror("shmdt");

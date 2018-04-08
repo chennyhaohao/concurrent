@@ -1,6 +1,13 @@
 #include <semaphore.h>
-#define maxPeople 20
+#include <unistd.h>
+#include <sys/types.h>
 
+#define maxPeople 3
+
+struct order {
+	pid_t client_id;
+	int item_id;
+};
 
 struct shmdata {
 	int waiting;
@@ -10,5 +17,5 @@ struct shmdata {
 	sem_t mutex;
 	sem_t customer;
 	sem_t queue[maxPeople];
-	int orders[maxPeople];
+	struct order orders[maxPeople];
 };
