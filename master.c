@@ -19,9 +19,9 @@ int main() {
 	waiting = mmap(NULL, sizeof *waiting, PROT_READ | PROT_WRITE, 
                     MAP_SHARED | MAP_ANONYMOUS, -1, 0); //Num of customers waiting
 	curr_q_index = mmap(NULL, sizeof *curr_q_index, PROT_READ | PROT_WRITE, 
-                    MAP_SHARED | MAP_ANONYMOUS, -1, 0); 
+                    MAP_SHARED | MAP_ANONYMOUS, -1, 0); //Tail of queue
 	curr_s_index = mmap(NULL, sizeof *curr_s_index, PROT_READ | PROT_WRITE, 
-                    MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+                    MAP_SHARED | MAP_ANONYMOUS, -1, 0); //Head of queue
 	q_mutex = mmap(NULL, sizeof(sem_t), PROT_READ | PROT_WRITE, 
                     MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
