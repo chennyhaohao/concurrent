@@ -1,4 +1,3 @@
-
 struct menu_item {
 	int id;
 	float price;
@@ -28,3 +27,7 @@ struct menu_item menu[20] = {
 	{19, 3.25, 2, 3},
 	{20, 3.75, 5, 7}
 };
+
+struct menu_item getItem(struct menu_item * m, int id) {
+	return m[id-1];
+}

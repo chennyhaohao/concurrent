@@ -10,6 +10,7 @@
 int       shm_id;
 key_t     mem_key;
 struct shmdata *shm_ptr;
+pid_t pid;
 
 int main(int argc, char **argv) {
 	char opt;
@@ -50,7 +51,7 @@ int main(int argc, char **argv) {
     	return -1;
     }
 
-	if ( (mem_key = ftok("./ipc.temp", 666)) == -1 ) {
+	if ( (mem_key = ftok("./ipc.temp", projectID)) == -1 ) {
 		perror("ftok");
 		return -1;
 	}
@@ -82,11 +83,13 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
+	pid = getpid();
+
 	shm_ptr->waiting++;
 	int index = shm_ptr->tail_i;
 	shm_ptr->tail_i = (shm_ptr->tail_i+1)%maxPeople;
 
-	shm_ptr->orders[index].client_id = getpid(); 
+	shm_ptr->orders[index].client_id = pid; 
 	shm_ptr->orders[index].item_id = item_id; //Place order
 
 	sem_post(&(shm_ptr->mutex)); //Release mutex
@@ -99,6 +102,17 @@ int main(int argc, char **argv) {
 	sem_wait(&(shm_ptr->mutex)); //Mutex lock
 	shm_ptr->waiting--;
 	sem_post(&(shm_ptr->mutex)); //Release mutex
+
+	sem_post(&(shm_ptr->server_customer)); //Wake up server
+	sem_wait(&(shm_ptr->server_available)); //Wait for server
+
+	sem_wait(&(shm_ptr->server_mutex));
+	shm_ptr->curr_id = pid;
+	sem_post(&(shm_ptr->server_mutex));
+	sem_post(&(shm_ptr->id_updated)); //Notify server that curr_id is updated
+
+	sem_wait(&(shm_ptr->server_service)); //Wait for dish
+	printf("Client got served by server\n");
 
 	if ( (shmdt(shm_ptr)) == -1 ) {
 		perror("shmdt");

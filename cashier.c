@@ -6,6 +6,7 @@
 #include <sys/shm.h>
 
 #include "./shm.h"
+#include "./menu.h"
 
 int       shm_id;
 key_t     mem_key;
@@ -46,7 +47,7 @@ int main(int argc, char **argv) {
     	return -1;
     }
 
-	if ( (mem_key = ftok("./ipc.temp", 666)) == -1 ) {
+	if ( (mem_key = ftok("./ipc.temp", projectID)) == -1 ) {
 		perror("ftok");
 		return -1;
 	}
@@ -74,8 +75,10 @@ int main(int argc, char **argv) {
 
 	sleep(service_time);
 
-	printf("Picked up order from client %d for item %d\n", shm_ptr->orders[index].client_id, 
+	printf("Picked up order from client %d for item %d ", shm_ptr->orders[index].client_id, 
 		shm_ptr->orders[index].item_id);
+	struct menu_item item = getItem(menu, shm_ptr->orders[index].item_id);
+	printf("Item price: %f min_t: %d max_t: %d\n", item.price, item.min_t, item.max_t);
 
 	sem_wait(&(shm_ptr->db_mutex));
 	db_index = shm_ptr->db_i;

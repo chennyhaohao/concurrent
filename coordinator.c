@@ -11,9 +11,16 @@ int main() {
 	key_t mem_key;
 	int shm_id;
 	struct shmdata *shm_ptr;
+	FILE * db_fp;
 
+	if ( (db_fp = fopen("./db.bin", "w")) < 0 ) { //Create emptydb file
+    	perror("fopen");
+    	return -1;
+    }
 
-	if ( (mem_key = ftok("./ipc.temp", 666)) == -1 ) {
+    fclose(db_fp);
+
+	if ( (mem_key = ftok("./ipc.temp", projectID)) == -1 ) {
 		perror("ftok");
 		return -1;
 	}
@@ -40,6 +47,14 @@ int main() {
 	sem_init(&(shm_ptr->mutex), 1, 1);
 	sem_init(&(shm_ptr->db_mutex), 1, 1);
 	sem_init(&(shm_ptr->customer), 1, 0);
+
+	sem_init(&(shm_ptr->server_mutex), 1, 1);
+	sem_init(&(shm_ptr->server_customer), 1, 0);
+	sem_init(&(shm_ptr->server_available), 1, 0);
+	sem_init(&(shm_ptr->server_service), 1, 0);
+	sem_init(&(shm_ptr->id_updated), 1, 0);
+
+
 	for (int i=0; i<maxPeople; i++) {
 		sem_init(&(shm_ptr->queue[i]), 1, 0);
 	}

@@ -12,7 +12,7 @@ key_t     mem_key;
 int       *shm_ptr;
 
 int main() {
-	if ( (mem_key = ftok("./ipc.temp", 666)) == -1 ) {
+	if ( (mem_key = ftok("./ipc.temp", projectID)) == -1 ) {
 		perror("ftok");
 		return -1;
 	}
