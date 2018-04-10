@@ -11,6 +11,7 @@
 int       shm_id;
 key_t     mem_key;
 struct shmdata *shm_ptr;
+struct order o;
 
 int main(int argc, char **argv) {
 	char opt;
@@ -72,6 +73,7 @@ int main(int argc, char **argv) {
 		sem_wait(&(shm_ptr->mutex)); //Mutex lock
 		index = shm_ptr->head_i;
 		shm_ptr->head_i = (shm_ptr->head_i+1)%maxPeople; //Move queue head forward
+		o = shm_ptr->orders[index];
 		sem_post(&(shm_ptr->mutex)); //Release mutex
 
 		sleep(service_time);
@@ -87,7 +89,7 @@ int main(int argc, char **argv) {
 		sem_post(&(shm_ptr->db_mutex));
 
 		fseek(db_fp, db_index*sizeof(struct order), SEEK_SET);
-		fwrite(&(shm_ptr->orders[index]), sizeof(struct order), 1, db_fp);
+		fwrite(&o, sizeof(struct order), 1, db_fp);
 		fflush(db_fp); //Make sure db is updated before customer goes to server
 		sem_post(&(shm_ptr->queue[index])); //Wake up customer
 	} while(1);
