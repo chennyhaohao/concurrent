@@ -71,6 +71,7 @@ int main(int argc, char **argv) {
 	printf("shm attached\n");
 
 	sem_wait(&(shm_ptr->mutex)); //Mutex lock
+
 	if (shm_ptr->waiting >= maxPeople) {
 		printf("Too many people waiting, client getting out of here\n");
 		sem_post(&(shm_ptr->mutex)); //Release mutex
@@ -97,7 +98,7 @@ int main(int argc, char **argv) {
 	sem_post(&(shm_ptr->customer)); //Wake up cashier
 	sem_wait(&(shm_ptr->queue[index])); //Wait for cashier to serve
 
-	printf("Client %d got served by cashier\n", getpid());
+	printf("Client %d got served by cashier\n", pid);
 
 	sem_wait(&(shm_ptr->mutex)); //Mutex lock
 	shm_ptr->waiting--;
@@ -112,7 +113,9 @@ int main(int argc, char **argv) {
 	sem_post(&(shm_ptr->id_updated)); //Notify server that curr_id is updated
 
 	sem_wait(&(shm_ptr->server_service)); //Wait for dish
-	printf("Client got served by server\n");
+	printf("Client got served by server; starts eating...\n");
+	sleep(eat_time);
+
 
 	if ( (shmdt(shm_ptr)) == -1 ) {
 		perror("shmdt");

@@ -66,29 +66,31 @@ int main(int argc, char **argv) {
 
 	printf("shm attached\n");
 
-	sem_wait(&(shm_ptr->customer)); //Wait till there are customers
+	do {
+		sem_wait(&(shm_ptr->customer)); //Wait till there are customers
 
-	sem_wait(&(shm_ptr->mutex)); //Mutex lock
-	index = shm_ptr->head_i;
-	shm_ptr->head_i = (shm_ptr->head_i+1)%maxPeople; //Move queue head forward
-	sem_post(&(shm_ptr->mutex)); //Release mutex
+		sem_wait(&(shm_ptr->mutex)); //Mutex lock
+		index = shm_ptr->head_i;
+		shm_ptr->head_i = (shm_ptr->head_i+1)%maxPeople; //Move queue head forward
+		sem_post(&(shm_ptr->mutex)); //Release mutex
 
-	sleep(service_time);
+		sleep(service_time);
 
-	printf("Picked up order from client %d for item %d ", shm_ptr->orders[index].client_id, 
-		shm_ptr->orders[index].item_id);
-	struct menu_item item = getItem(menu, shm_ptr->orders[index].item_id);
-	printf("Item price: %f min_t: %d max_t: %d\n", item.price, item.min_t, item.max_t);
+		printf("Picked up order from client %d for item %d ", shm_ptr->orders[index].client_id, 
+			shm_ptr->orders[index].item_id);
+		struct menu_item item = getItem(menu, shm_ptr->orders[index].item_id);
+		printf("Item price: %f min_t: %d max_t: %d\n", item.price, item.min_t, item.max_t);
 
-	sem_wait(&(shm_ptr->db_mutex));
-	db_index = shm_ptr->db_i;
-	shm_ptr->db_i++;
-	sem_post(&(shm_ptr->db_mutex));
+		sem_wait(&(shm_ptr->db_mutex));
+		db_index = shm_ptr->db_i;
+		shm_ptr->db_i++;
+		sem_post(&(shm_ptr->db_mutex));
 
-	fseek(db_fp, db_index*sizeof(struct order), SEEK_SET);
-	fwrite(&(shm_ptr->orders[index]), sizeof(struct order), 1, db_fp);
-
-	sem_post(&(shm_ptr->queue[index])); //Wake up customer
+		fseek(db_fp, db_index*sizeof(struct order), SEEK_SET);
+		fwrite(&(shm_ptr->orders[index]), sizeof(struct order), 1, db_fp);
+		fflush(db_fp); //Make sure db is updated before customer goes to server
+		sem_post(&(shm_ptr->queue[index])); //Wake up customer
+	} while(1);
 
 	if ( (shmdt(shm_ptr)) == -1 ) {
 		perror("shmdt");

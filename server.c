@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <time.h>
 
 #include "./shm.h"
 #include "./menu.h"
@@ -11,6 +12,11 @@
 int       shm_id;
 key_t     mem_key;
 struct shmdata *shm_ptr;
+
+int r_rand(int rmin, int rmax) { //Returns random number between rmin and rmax (inclusive)
+    if (rmax <= rmin) return rmin;
+    return rand()%(rmax - rmin + 1) + rmin;
+}
 
 struct order getOrder(FILE * fp, int client_id) {
 	int nread;
@@ -28,7 +34,7 @@ struct order getOrder(FILE * fp, int client_id) {
 }
 
 int main(int argc, char **argv) {
-	int curr_id, db_index;
+	int curr_id, db_index, serve_time;
 	FILE * db_fp;
 	struct order o;
 	struct menu_item m;
@@ -58,6 +64,8 @@ int main(int argc, char **argv) {
 
 	printf("shm attached\n");
 
+	srand(time(NULL));
+
 	do {
 		sem_post(&(shm_ptr->server_available)); //Wake up 1 customer
 		sem_wait(&(shm_ptr->server_customer)); //Wait till there are customers
@@ -66,13 +74,15 @@ int main(int argc, char **argv) {
 
 		sem_wait(&(shm_ptr->server_mutex));
 		curr_id = shm_ptr->curr_id;
+		sem_post(&(shm_ptr->server_mutex));
+
 		o = getOrder(db_fp, curr_id);
 		printf("Got order from client %d for item %d\n", o.client_id, o.item_id);
 		m = getItem(menu, o.item_id);
 		printf("Item price: %f min_t: %d max_t: %d\n", m.price, m.min_t, m.max_t);
-		sem_post(&(shm_ptr->server_mutex));
-
-		sleep(m.min_t);
+		serve_time = r_rand(m.min_t, m.max_t);
+		printf("Serve time: %d\n", serve_time);
+		sleep(serve_time);
 
 		sem_post(&(shm_ptr->server_service)); //Wake up customer
 		printf("Served customer\n");
