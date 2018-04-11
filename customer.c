@@ -91,9 +91,9 @@ int main(int argc, char **argv) {
 	shm_ptr->tail_i = (shm_ptr->tail_i+1)%maxPeople;
 
 	shm_ptr->orders[index].client_id = pid; 
-	shm_ptr->orders[index].item_id = item_id; //Place order
+	shm_ptr->orders[index].item_id = item_id; //Place order (produce order)
 
-	sem_post(&(shm_ptr->mutex)); //Release mutex
+	sem_post(&(shm_ptr->mutex)); //Release mutex after producing
 
 	sem_post(&(shm_ptr->customer)); //Wake up cashier
 	sem_wait(&(shm_ptr->queue[index])); //Wait for cashier to serve

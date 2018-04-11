@@ -73,8 +73,8 @@ int main(int argc, char **argv) {
 		sem_wait(&(shm_ptr->mutex)); //Mutex lock
 		index = shm_ptr->head_i;
 		shm_ptr->head_i = (shm_ptr->head_i+1)%maxPeople; //Move queue head forward
-		o = shm_ptr->orders[index];
-		sem_post(&(shm_ptr->mutex)); //Release mutex
+		o = shm_ptr->orders[index]; //Consume order
+		sem_post(&(shm_ptr->mutex)); //Release mutex after consuming
 
 		sleep(service_time);
 
