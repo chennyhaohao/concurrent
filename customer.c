@@ -14,7 +14,7 @@ pid_t pid;
 
 int main(int argc, char **argv) {
 	char opt;
-	int item_id, eat_time, argNum = 0;
+	int item_id, client_id, eat_time, cashier_i, argNum = 0;
 	char * usage_msg = "Usage %s: -i [item_id] -e [eat_time]\n";
 
 	while ((opt = getopt(argc, argv, "i:e:")) != -1) { // Use getopt to parse commandline arguments
@@ -84,21 +84,31 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
-	pid = getpid();
-
 	shm_ptr->waiting++;
-	int index = shm_ptr->tail_i;
-	shm_ptr->tail_i = (shm_ptr->tail_i+1)%maxPeople;
+	sem_post(&(shm_ptr->mutex));
 
-	shm_ptr->orders[index].client_id = pid; 
-	shm_ptr->orders[index].item_id = item_id; //Place order (produce order)
 
-	sem_post(&(shm_ptr->mutex)); //Release mutex after producing
+	sem_wait(&(shm_ptr->cashier_available)); //Wait for available cashier
 
-	sem_post(&(shm_ptr->customer)); //Wake up cashier
-	sem_wait(&(shm_ptr->queue[index])); //Wait for cashier to serve
+	sem_wait(&(shm_ptr->mutex)); //Mutex lock
 
-	printf("Client %d got served by cashier\n", pid);
+	for (int i=0; i<maxCashier; i++) {
+		if (!shm_ptr->cashiers[i].busy) {
+			cashier_i = i; //pick cashier who's not busy
+			shm_ptr->cashiers[i].busy = 1; //Reserve cashier
+			break;
+		}
+	}
+	printf("Going to cashier #%d\n", cashier_i);
+	shm_ptr->cashiers[cashier_i].item_id = item_id; //Place order
+
+	sem_post(&(shm_ptr->mutex)); //Release mutex
+	sem_post(&(shm_ptr->cashiers[cashier_i].customer_ready)); //Wake up cashier
+
+	sem_wait(&(shm_ptr->cashiers[cashier_i].service_done)); //Wait for service
+	client_id = shm_ptr->cashiers[cashier_i].client_id;
+	printf("Customer got served by cashier. Assigned id: %d\n", client_id);
+	sem_post(&(shm_ptr->cashiers[cashier_i].receipt_collected)); //Acknowledge receipt
 
 	sem_wait(&(shm_ptr->mutex)); //Mutex lock
 	shm_ptr->waiting--;
@@ -108,7 +118,7 @@ int main(int argc, char **argv) {
 	sem_wait(&(shm_ptr->server_available)); //Wait for server
 
 	sem_wait(&(shm_ptr->server_mutex));
-	shm_ptr->curr_id = pid;
+	shm_ptr->curr_id = client_id;
 	sem_post(&(shm_ptr->server_mutex));
 	sem_post(&(shm_ptr->id_updated)); //Notify server that curr_id is updated
 

@@ -15,7 +15,7 @@ struct order o;
 
 int main(int argc, char **argv) {
 	char opt;
-	int service_time, index, db_index, argNum = 0;
+	int service_time, cashier_i, index, db_index, argNum = 0;
 	char* usage_msg = "Usage: %s -s [service time]\n";
 	FILE * db_fp;
 
@@ -67,20 +67,42 @@ int main(int argc, char **argv) {
 
 	printf("shm attached\n");
 
+	sem_wait(&(shm_ptr->mutex));
+	if (shm_ptr->cashier_count >= maxCashier) {
+		printf("Enough cashiers today, cashier go home and watch Netflix\n");
+		sem_post(&(shm_ptr->mutex)); //Release mutex
+		if ( (shmdt(shm_ptr)) == -1 ) { //Detach from shm
+			perror("shmdt");
+			return -1;
+		}
+
+		printf("shm detached\n");
+		return -1;
+	}
+
+	cashier_i = shm_ptr->cashier_count;
+	printf("Cashier #%d in position\n", cashier_i);
+	shm_ptr->cashier_count++;
+	sem_post(&(shm_ptr->mutex));
+
 	do {
-		sem_wait(&(shm_ptr->customer)); //Wait till there are customers
+		sem_wait(&(shm_ptr->mutex));
+		shm_ptr->cashiers[cashier_i].busy = 0; //No longer busy
+		sem_post(&(shm_ptr->mutex));
 
-		sem_wait(&(shm_ptr->mutex)); //Mutex lock
-		index = shm_ptr->head_i;
-		shm_ptr->head_i = (shm_ptr->head_i+1)%maxPeople; //Move queue head forward
-		o = shm_ptr->orders[index]; //Consume order
-		sem_post(&(shm_ptr->mutex)); //Release mutex after consuming
+		sem_post(&(shm_ptr->cashier_available)); //Wake up 1 customer
+		sem_wait(&(shm_ptr->cashiers[cashier_i].customer_ready)); //Wait for customers to come and place order
 
-		sleep(service_time);
+		sem_wait(&(shm_ptr->mutex));
+		o.item_id = shm_ptr->cashiers[cashier_i].item_id; //Consume item id
+		o.client_id = shm_ptr->next_id;
+		shm_ptr->cashiers[cashier_i].client_id = o.client_id; //Produce client id
+		shm_ptr->next_id++;
+		sem_post(&(shm_ptr->mutex));
 
-		printf("Picked up order from client %d for item %d ", shm_ptr->orders[index].client_id, 
-			shm_ptr->orders[index].item_id);
-		struct menu_item item = getItem(menu, shm_ptr->orders[index].item_id);
+		printf("Picked up order from client %d for item %d ", o.client_id, 
+			o.item_id);
+		struct menu_item item = getItem(menu, o.item_id);
 		printf("Item price: %f min_t: %d max_t: %d\n", item.price, item.min_t, item.max_t);
 
 		sem_wait(&(shm_ptr->db_mutex));
@@ -91,7 +113,11 @@ int main(int argc, char **argv) {
 		fseek(db_fp, db_index*sizeof(struct order), SEEK_SET);
 		fwrite(&o, sizeof(struct order), 1, db_fp);
 		fflush(db_fp); //Make sure db is updated before customer goes to server
-		sem_post(&(shm_ptr->queue[index])); //Wake up customer
+		sleep(service_time);
+
+		sem_post(&(shm_ptr->cashiers[cashier_i].service_done)); //Wake up customer
+		sem_wait(&(shm_ptr->cashiers[cashier_i].receipt_collected)); //Wait for ACK for receipt
+
 	} while(1);
 
 	if ( (shmdt(shm_ptr)) == -1 ) {

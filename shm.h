@@ -2,24 +2,35 @@
 #include <unistd.h>
 #include <sys/types.h>
 
-#define maxPeople 3
+#define maxPeople 5
+#define maxCashier 3
 #define projectID 2333
 
 struct order {
-	pid_t client_id;
+	int client_id;
 	int item_id;
 };
 
+struct cashier_ds {
+	sem_t service_done;
+	sem_t customer_ready;
+	sem_t receipt_collected;
+	int busy;
+	int item_id;
+	int client_id;
+};
+
+
 struct shmdata {
 	int waiting;
-	int head_i;
-	int tail_i;
+	int cashier_count;
 	int db_i;
 	int curr_id;
+	int next_id;
 
 	sem_t mutex;
 	sem_t db_mutex;
-	sem_t customer;
+	sem_t cashier_available;
 
 	sem_t server_mutex;
 	sem_t server_customer;
@@ -27,8 +38,5 @@ struct shmdata {
 	sem_t server_service;
 	sem_t id_updated;
 
-	sem_t queue[maxPeople];
-	struct order orders[maxPeople];
-
-	
+	struct cashier_ds cashiers[maxCashier];	
 };
