@@ -122,6 +122,7 @@ int main(int argc, char **argv) {
 
 	sem_post(&(shm_ptr->server_customer)); //Wake up server
 	sem_wait(&(shm_ptr->server_available)); //Wait for server
+	printf("Getting served by server...\n");
 
 	sem_wait(&(shm_ptr->server_mutex));
 	shm_ptr->curr_id = client_id;

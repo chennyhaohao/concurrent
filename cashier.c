@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
     	return -1;
     }
 
-    if ( (db_fp = fopen("./db.bin", "a")) < 0 ) {
+    if ( (db_fp = fopen("./db.bin", "a")) < 0 ) { //Append mode, all writes are directly to eof
     	perror("fopen");
     	return -1;
     }
@@ -107,13 +107,15 @@ int main(int argc, char **argv) {
 		o.price = item.price;
 
 		sem_wait(&(shm_ptr->db_mutex));
-		db_index = shm_ptr->db_i;
-		shm_ptr->db_i++;
-		sem_post(&(shm_ptr->db_mutex));
-
-		fseek(db_fp, db_index*sizeof(struct order), SEEK_SET);
+		//db_index = shm_ptr->db_i;
+		//shm_ptr->db_i++;
 		fwrite(&o, sizeof(struct order), 1, db_fp);
 		fflush(db_fp); //Make sure db is updated before customer goes to server
+		
+		sem_post(&(shm_ptr->db_mutex));
+
+		//fseek(db_fp, db_index*sizeof(struct order), SEEK_SET);
+		
 		sleep(service_time);
 
 		sem_post(&(shm_ptr->cashiers[cashier_i].service_done)); //Wake up customer
