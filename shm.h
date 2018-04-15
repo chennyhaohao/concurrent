@@ -9,6 +9,8 @@
 struct order {
 	int client_id;
 	int item_id;
+	float price;
+	int waiting_time;
 };
 
 struct cashier_ds {

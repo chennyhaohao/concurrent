@@ -5,8 +5,8 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
-#include "./shm.h"
 #include "./menu.h"
+#include "./utils.h"
 
 int       shm_id;
 key_t     mem_key;
