@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 
 	printf("shmid to attach to: %d\n", shm_id);
 
-	if ( (int)(shm_ptr = (struct shmdata *) shmat(shm_id, NULL, 0)) == -1 ) {
+	if ( (long)(shm_ptr = (struct shmdata *) shmat(shm_id, NULL, 0)) == -1 ) {
 		perror("shmat");
 		return -1;
 	} 
@@ -91,8 +91,8 @@ int main(int argc, char **argv) {
 	sem_wait(&(shm_ptr->cashier_available)); //Wait for available cashier
 
 	sem_wait(&(shm_ptr->mutex)); //Mutex lock
-
-	for (int i=0; i<maxCashier; i++) {
+	int i;
+	for (i=0; i<maxCashier; i++) {
 		if (!shm_ptr->cashiers[i].busy) {
 			cashier_i = i; //pick cashier who's not busy
 			shm_ptr->cashiers[i].busy = 1; //Reserve cashier

@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
 
 	printf("shmid to attach to: %d\n", shm_id);
 
-	if ( (int)(shm_ptr = (struct shmdata *) shmat(shm_id, NULL, 0)) == -1 ) {
+	if ( (long)(shm_ptr = (struct shmdata *) shmat(shm_id, NULL, 0)) == -1 ) {
 		perror("shmat");
 		return -1;
 	} 

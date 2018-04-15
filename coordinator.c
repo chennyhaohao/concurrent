@@ -32,7 +32,7 @@ int main() {
 
 	printf("shmid created: %d\n", shm_id);
 
-	if ( (int)(shm_ptr = (struct shmdata *) shmat(shm_id, NULL, 0)) == -1 ) { //attach to shm
+	if ( (long)(shm_ptr = (struct shmdata *) shmat(shm_id, NULL, 0)) == -1 ) { //attach to shm
 		perror("shmat");
 		return -1;
 	} 
@@ -54,8 +54,8 @@ int main() {
 	sem_init(&(shm_ptr->server_service), 1, 0);
 	sem_init(&(shm_ptr->id_updated), 1, 0);
 
-
-	for (int i=0; i<maxCashier; i++) {
+	int i;
+	for (i=0; i<maxCashier; i++) {
 		shm_ptr->cashiers[i].busy = 1;
 		sem_init(&(shm_ptr->cashiers[i].customer_ready), 1, 0); //No customer at first
 		sem_init(&(shm_ptr->cashiers[i].service_done), 1, 0);

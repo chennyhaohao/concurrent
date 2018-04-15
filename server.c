@@ -21,6 +21,7 @@ int r_rand(int rmin, int rmax) { //Returns random number between rmin and rmax (
 struct order getOrder(FILE * fp, int client_id) {
 	int nread;
 	struct order o;
+	fseek(fp, 0, SEEK_SET);
 	while (1) {
 		nread = fread(&o, sizeof(struct order), 1, fp);
 		if (nread == 0) {
@@ -57,7 +58,7 @@ int main(int argc, char **argv) {
 
 	printf("shmid to attach to: %d\n", shm_id);
 
-	if ( (int)(shm_ptr = (struct shmdata *) shmat(shm_id, NULL, 0)) == -1 ) {
+	if ( (long)(shm_ptr = (struct shmdata *) shmat(shm_id, NULL, 0)) == -1 ) {
 		perror("shmat");
 		return -1;
 	} 
