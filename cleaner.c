@@ -64,7 +64,7 @@ int main() {
     }
 
     qsort(stats, ITEM_NUM, sizeof(struct item_stat), comp);
-
+    printf("Most popular items:\n");
     for (i = 0; i<5; i++) {
     	struct item_stat s = stats[ITEM_NUM - i - 1];
     	printf("ID: %d, frequency: %d, revenue: %f\n", s.item_id, s.frequency, s.revenue);
