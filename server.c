@@ -15,7 +15,7 @@ struct shmdata *shm_ptr;
 
 
 int main(int argc, char **argv) {
-	int curr_id, db_index, serve_time;
+	int curr_id, db_index, serve_time, i;
 	FILE * db_fp;
 	struct order o;
 	struct menu_item m;
@@ -57,8 +57,12 @@ int main(int argc, char **argv) {
 		curr_id = shm_ptr->curr_id;
 		sem_post(&(shm_ptr->server_mutex));
 
-		o = getOrder(db_fp, curr_id);
-		printf("Got order from client %d for item %d\n", o.client_id, o.item_id);
+		i = getOrder(db_fp, curr_id, &o);
+		if (i == -1) {
+			perror("DB client_id not found");
+			return -1;
+		}
+		printf("Got order from client %d for item %d at db_index %d\n", o.client_id, o.item_id, i);
 		m = getItem(menu, o.item_id);
 		printf("Item price: %f min_t: %d max_t: %d\n", m.price, m.min_t, m.max_t);
 		serve_time = r_rand(m.min_t, m.max_t);

@@ -4,8 +4,10 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <time.h>
 
-#include "./shm.h"
+#include "./utils.h"
+
 
 int       shm_id;
 key_t     mem_key;
@@ -14,8 +16,11 @@ pid_t pid;
 
 int main(int argc, char **argv) {
 	char opt;
-	int item_id, client_id, eat_time, cashier_i, argNum = 0;
+	int item_id, client_id, eat_time, cashier_i, db_i, argNum = 0;
+	time_t start_time, waiting_time;
 	char * usage_msg = "Usage %s: -i [item_id] -e [eat_time]\n";
+	struct order o;
+	FILE * db_fp;
 
 	while ((opt = getopt(argc, argv, "i:e:")) != -1) { // Use getopt to parse commandline arguments
         switch (opt) { 
@@ -87,6 +92,7 @@ int main(int argc, char **argv) {
 	shm_ptr->waiting++;
 	sem_post(&(shm_ptr->mutex));
 
+	start_time = time(NULL); //Start timer
 
 	sem_wait(&(shm_ptr->cashier_available)); //Wait for available cashier
 
@@ -126,6 +132,19 @@ int main(int argc, char **argv) {
 	printf("Client got served by server; starts eating...\n");
 	sleep(eat_time);
 
+	waiting_time = time(NULL) - start_time; //Calculate waiting time
+	printf("Waiting time: %d\n", (int)waiting_time);
+
+	if ( (db_fp = fopen("./db.bin", "r+")) < 0 ) {
+    	perror("fopen");
+    	return -1;
+    }
+
+    db_i = getOrder(db_fp, client_id, &o);
+    o.waiting_time = (int) waiting_time;
+    writeOrder(db_fp, db_i, &o);
+
+    fclose(db_fp);
 
 	if ( (shmdt(shm_ptr)) == -1 ) {
 		perror("shmdt");

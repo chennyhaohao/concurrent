@@ -8,18 +8,22 @@ int r_rand(int rmin, int rmax) { //Returns random number between rmin and rmax (
     return rand()%(rmax - rmin + 1) + rmin;
 }
 
-struct order getOrder(FILE * fp, int client_id) {
-	int nread;
-	struct order o;
+int getOrder(FILE * fp, int client_id, struct order * o) { //Returns db index & writes order into o
+	int nread, i = 0;
 	fseek(fp, 0, SEEK_SET);
 	while (1) {
-		nread = fread(&o, sizeof(struct order), 1, fp);
-		if (nread == 0) {
+		nread = fread(o, sizeof(struct order), 1, fp);
+		if (nread == 0) { //Not found
 			break;
 		} else {
-			if (o.client_id == client_id) return o;
+			if (o->client_id == client_id) return i;
 		}
+		i++;
 	}
-	struct order o1 = {0,0,0.0,0};
-	return o1;
+	return -1;
+}
+
+void writeOrder(FILE * fp, int index, struct order * o) {
+	fseek(fp, index * sizeof(struct order), SEEK_SET);
+	fwrite(o, sizeof(struct order), 1, fp);
 }

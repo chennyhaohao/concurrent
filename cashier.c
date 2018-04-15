@@ -104,6 +104,7 @@ int main(int argc, char **argv) {
 			o.item_id);
 		struct menu_item item = getItem(menu, o.item_id);
 		printf("Item price: %f min_t: %d max_t: %d\n", item.price, item.min_t, item.max_t);
+		o.price = item.price;
 
 		sem_wait(&(shm_ptr->db_mutex));
 		db_index = shm_ptr->db_i;
