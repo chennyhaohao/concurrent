@@ -1,9 +1,11 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 #include "shm.h"
 
 int r_rand(int rmin, int rmax) { //Returns random number between rmin and rmax (inclusive)
+	srand(time(NULL));
     if (rmax <= rmin) return rmin;
     return rand()%(rmax - rmin + 1) + rmin;
 }
