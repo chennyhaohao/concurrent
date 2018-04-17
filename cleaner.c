@@ -11,7 +11,6 @@
 
 int       shm_id;
 key_t     mem_key;
-//int       *shm_ptr;
 
 struct item_stat {
 	int item_id;
@@ -45,6 +44,8 @@ int main() {
     	perror("fopen");
     	return -1;
     }
+
+    //Report statistics
 
     while(1) {
     	nread = fread(&o, sizeof(struct order), 1, db_fp);
@@ -92,6 +93,7 @@ int main() {
 
 	printf("shm attached\n");
 
+	//Destory semaphores
 
 	sem_destroy(&(shm_ptr->mutex));
 	sem_destroy(&(shm_ptr->db_mutex));
@@ -111,6 +113,8 @@ int main() {
 
 	printf("Semaphores destroyed\n");
 
+
+	//Purge shared memory
 	if ( shmctl(shm_id, IPC_RMID, 0) < 0 ) { //rm shm using id
 		perror("shmctl");
 	}

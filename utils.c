@@ -25,7 +25,7 @@ int getOrder(FILE * fp, int client_id, struct order * o) { //Returns db index & 
 	return -1;
 }
 
-void writeOrder(FILE * fp, int index, struct order * o) {
+void writeOrder(FILE * fp, int index, struct order * o) { //Write order into db at position index
 	fseek(fp, index * sizeof(struct order), SEEK_SET);
 	fwrite(o, sizeof(struct order), 1, fp);
 }

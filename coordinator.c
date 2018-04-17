@@ -32,6 +32,8 @@ int main() {
 		return -1;
 	}
 
+	//Create shared memory
+
 	if ( (shm_id = shmget(mem_key, sizeof(struct shmdata), IPC_CREAT|0666)) < 0) { //get shm id
 		perror("shmget");
 		return -1;
@@ -45,6 +47,8 @@ int main() {
 	} 
 
 	printf("shm attached\n");
+
+	//Initialize shared memory data structures, including semaphores
 
 	shm_ptr->waiting = 0;
 	shm_ptr->db_i = 0;

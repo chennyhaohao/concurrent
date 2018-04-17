@@ -107,14 +107,9 @@ int main(int argc, char **argv) {
 		o.price = item.price;
 
 		sem_wait(&(shm_ptr->db_mutex));
-		//db_index = shm_ptr->db_i;
-		//shm_ptr->db_i++;
-		fwrite(&o, sizeof(struct order), 1, db_fp);
+		fwrite(&o, sizeof(struct order), 1, db_fp); //Write order into db file
 		fflush(db_fp); //Make sure db is updated before customer goes to server
-
 		sem_post(&(shm_ptr->db_mutex));
-
-		//fseek(db_fp, db_index*sizeof(struct order), SEEK_SET);
 		
 		sleep(service_time);
 

@@ -120,6 +120,8 @@ int main(int argc, char **argv) {
 	shm_ptr->waiting--;
 	sem_post(&(shm_ptr->mutex)); //Release mutex
 
+	//Go to server
+
 	sem_post(&(shm_ptr->server_customer)); //Wake up server
 	sem_wait(&(shm_ptr->server_available)); //Wait for server
 	printf("Getting served by server...\n");
@@ -146,6 +148,7 @@ int main(int argc, char **argv) {
     	return -1;
     }
 
+    //Write waiting time & time spent into db
     db_i = getOrder(db_fp, client_id, &o);
     o.waiting_time = (int) waiting_time;
     o.stay_time = (int) stay_time;
