@@ -17,7 +17,7 @@ pid_t pid;
 int main(int argc, char **argv) {
 	char opt;
 	int item_id, client_id, eat_time, cashier_i, db_i, argNum = 0;
-	time_t start_time, waiting_time;
+	time_t start_time, waiting_time, stay_time;
 	char * usage_msg = "Usage %s: -i [item_id] -e [eat_time]\n";
 	struct order o;
 	FILE * db_fp;
@@ -131,10 +131,15 @@ int main(int argc, char **argv) {
 
 	sem_wait(&(shm_ptr->server_service)); //Wait for dish
 	printf("Client got served by server; starts eating...\n");
-	sleep(eat_time);
 
 	waiting_time = time(NULL) - start_time; //Calculate waiting time
 	printf("Waiting time: %d\n", (int)waiting_time);
+
+	eat_time = r_rand(1, eat_time); //Random time up to eat_time
+	sleep(eat_time);
+
+	stay_time = time(NULL) - start_time;
+	printf("Stay time: %d\n", (int)stay_time);
 
 	if ( (db_fp = fopen(DB_FNAME, "r+")) < 0 ) {
     	perror("fopen");
@@ -143,6 +148,7 @@ int main(int argc, char **argv) {
 
     db_i = getOrder(db_fp, client_id, &o);
     o.waiting_time = (int) waiting_time;
+    o.stay_time = (int) stay_time;
     writeOrder(db_fp, db_i, &o);
 
     fclose(db_fp);

@@ -14,6 +14,7 @@ struct order {
 	int item_id;
 	float price;
 	int waiting_time;
+	int stay_time;
 };
 
 struct cashier_ds {

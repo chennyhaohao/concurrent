@@ -48,8 +48,8 @@ int main() {
     while(1) {
     	nread = fread(&o, sizeof(struct order), 1, db_fp);
     	if (nread == 0) break;
-    	printf("Client id: %d, item id:%d, money spent: %f, waiting time:%d\n", o.client_id, o.item_id,
-    		o.price, o.waiting_time);
+    	printf("Client id: %d, item id:%d, money spent: %f, waiting time:%d, time spent in the restaurant: %d\n", 
+    		o.client_id, o.item_id, o.price, o.waiting_time, o.stay_time);
     	total_wtime += o.waiting_time;
     	revenue += o.price;
     	stats[o.item_id - 1].frequency ++;
