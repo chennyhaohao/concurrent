@@ -6,6 +6,9 @@
 #define maxCashier 3
 #define projectID 2333
 
+#define IPC_FNAME "./ipc.temp"
+#define DB_FNAME "./db.bin"
+
 struct order {
 	int client_id;
 	int item_id;

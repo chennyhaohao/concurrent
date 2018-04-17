@@ -43,12 +43,12 @@ int main(int argc, char **argv) {
     	return -1;
     }
 
-    if ( (db_fp = fopen("./db.bin", "a")) < 0 ) { //Append mode, all writes are directly to eof
+    if ( (db_fp = fopen(DB_FNAME, "a")) < 0 ) { //Append mode, all writes are directly to eof
     	perror("fopen");
     	return -1;
     }
 
-	if ( (mem_key = ftok("./ipc.temp", projectID)) == -1 ) {
+	if ( (mem_key = ftok(IPC_FNAME, projectID)) == -1 ) {
 		perror("ftok");
 		return -1;
 	}
@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
 		//shm_ptr->db_i++;
 		fwrite(&o, sizeof(struct order), 1, db_fp);
 		fflush(db_fp); //Make sure db is updated before customer goes to server
-		
+
 		sem_post(&(shm_ptr->db_mutex));
 
 		//fseek(db_fp, db_index*sizeof(struct order), SEEK_SET);

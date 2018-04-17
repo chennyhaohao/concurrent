@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
     	return -1;
     }
 
-	if ( (mem_key = ftok("./ipc.temp", projectID)) == -1 ) {
+	if ( (mem_key = ftok(IPC_FNAME, projectID)) == -1 ) {
 		perror("ftok");
 		return -1;
 	}
@@ -136,7 +136,7 @@ int main(int argc, char **argv) {
 	waiting_time = time(NULL) - start_time; //Calculate waiting time
 	printf("Waiting time: %d\n", (int)waiting_time);
 
-	if ( (db_fp = fopen("./db.bin", "r+")) < 0 ) {
+	if ( (db_fp = fopen(DB_FNAME, "r+")) < 0 ) {
     	perror("fopen");
     	return -1;
     }

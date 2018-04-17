@@ -11,16 +11,23 @@ int main() {
 	key_t mem_key;
 	int shm_id;
 	struct shmdata *shm_ptr;
-	FILE * db_fp;
+	FILE * db_fp, * ipc_fp;
 
-	if ( (db_fp = fopen("./db.bin", "w")) < 0 ) { //Create emptydb file
+	if ( (db_fp = fopen(DB_FNAME, "w")) < 0 ) { //Create empty db file
     	perror("fopen");
     	return -1;
     }
 
     fclose(db_fp);
 
-	if ( (mem_key = ftok("./ipc.temp", projectID)) == -1 ) {
+    if ( (ipc_fp = fopen(IPC_FNAME, "w")) < 0 ) { //Create empty ipc file
+    	perror("fopen");
+    	return -1;
+    }
+
+    fclose(ipc_fp);
+
+	if ( (mem_key = ftok(IPC_FNAME, projectID)) == -1 ) {
 		perror("ftok");
 		return -1;
 	}
