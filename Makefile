@@ -4,7 +4,7 @@ coordinator: coordinator.c shm.h
 	gcc coordinator.c -o coordinator -lpthread
 
 cleaner: cleaner.c shm.h
-	gcc cleaner.c -o cleaner
+	gcc cleaner.c -o cleaner -lpthread
 
 cashier: cashier.c shm.h menu.h utils.c
 	gcc cashier.c utils.o -o cashier -lpthread

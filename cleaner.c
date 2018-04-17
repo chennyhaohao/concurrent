@@ -11,7 +11,7 @@
 
 int       shm_id;
 key_t     mem_key;
-int       *shm_ptr;
+//int       *shm_ptr;
 
 struct item_stat {
 	int item_id;
@@ -30,6 +30,7 @@ int main() {
 	FILE * db_fp;
 	int total_wtime = 0, c_count = 0;
 	float revenue = 0.0;
+	struct shmdata *shm_ptr;
 
 	struct item_stat stats[ITEM_NUM];
 
@@ -83,6 +84,32 @@ int main() {
 	} 
 
 	printf("shmid to remove: %d\n", shm_id);
+
+	if ( (long)(shm_ptr = (struct shmdata *) shmat(shm_id, NULL, 0)) == -1 ) { //attach to shm
+		perror("shmat");
+		return -1;
+	} 
+
+	printf("shm attached\n");
+
+
+	sem_destroy(&(shm_ptr->mutex));
+	sem_destroy(&(shm_ptr->db_mutex));
+	sem_destroy(&(shm_ptr->cashier_available)); 
+
+	sem_destroy(&(shm_ptr->server_mutex));
+	sem_destroy(&(shm_ptr->server_customer));
+	sem_destroy(&(shm_ptr->server_available));
+	sem_destroy(&(shm_ptr->server_service));
+	sem_destroy(&(shm_ptr->id_updated));
+
+	for (i=0; i<maxCashier; i++) {
+		sem_destroy(&(shm_ptr->cashiers[i].customer_ready)); 
+		sem_destroy(&(shm_ptr->cashiers[i].service_done));
+		sem_destroy(&(shm_ptr->cashiers[i].receipt_collected));
+	}
+
+	printf("Semaphores destroyed\n");
 
 	if ( shmctl(shm_id, IPC_RMID, 0) < 0 ) { //rm shm using id
 		perror("shmctl");
